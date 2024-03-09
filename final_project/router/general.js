@@ -31,18 +31,13 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',async function (req, res) {
-  //Write your code here
-  /*if (books === null){
-    return res.status(400).json({message: "Empty book list"});
-  }else {
-    return res.send(JSON.stringify(books,null,4));
-  }*/
 
   try {
-    if (!books || Object.keys(books).length === 0) {
+    const allBooks = await books;
+    if (!allBooks || Object.keys(allBooks).length === 0) {
       return res.status(400).json({ message: "Empty book list" });
     } else {
-      return res.send(JSON.stringify(books, null, 4));
+      return res.send(JSON.stringify(allBooks, null, 4));
     }
   } catch (error) {
     console.error('Error fetching book list:', error);
@@ -88,7 +83,6 @@ public_users.get('/author/:author',async function (req, res) {
     return res.status(500).json({ message: "Error fetching book author" });
   }
 
-
 });
 
 // Get all books based on title
@@ -104,10 +98,9 @@ public_users.get('/title/:title',async function (req, res) {
       return res.status(404).json({ message: "Books with title not found" });
     }
   }catch (e) {
-
+    console.error('Error fetching book title:', e);
+    return res.status(500).json({ message: "Error fetching book title" });
   }
-
-
 });
 
 //  Get book review
