@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo buidld the booshop server",
     "start": "node index.js"
   },
   "keywords": [],
