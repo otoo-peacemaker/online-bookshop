@@ -1,12 +1,14 @@
 const createError = require('http-errors');
 const express = require('express');
 const session = require('express-session')
+const MemoryStore = require('memorystore')(session)//store session
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
+const {verify} = require("jsonwebtoken");
 const customer_routes = require('./routes/auth_users').authenticated;
 const genl_routes = require('./routes/general.js').general;
 
@@ -30,7 +32,17 @@ app.use(express.static(path.join(__dirname, 'public')));
  * requests whose paths start with /customer. This means that any routes under the /customer path
  * (e.g., /customer/login, /customer/profile, etc.) will have session management enabled.
  * */
-app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
+app.use("/customer",session({
+  cookie: { maxAge: 86400000 },
+  secret:"fingerprint_customer",
+  resave: true,
+  saveUninitialized: true,
+  store : new MemoryStore(
+      {
+        checkPeriod : 86400000 //expiry
+      }
+  )
+}))
 
 /**
  * This middleware function is used to authenticate requests to routes under the /customer/auth/* path.
@@ -51,7 +63,7 @@ app.use("/customer/auth/*", function auth(req,res,next){
   let token;
   if (req.session.authorization) {
     token = req.session.authorization['accessToken'];
-    jwt.verify(token, "access", (err, user) => {
+    verify(token, "access", (err, user) => {
       if (!err) {
         req.user = user;
         next();
@@ -67,7 +79,7 @@ app.use("/customer/auth/*", function auth(req,res,next){
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/customer", customer_routes);
-app.use("/", genl_routes);
+app.use("/books", genl_routes);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
